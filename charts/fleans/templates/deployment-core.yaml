@@ -40,6 +40,14 @@ spec:
               value: "http://+:8080"
             - name: Fleans__Role
               value: "Core"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ .Values.appEnvironment | default "Production" | quote }}
+            {{- if .Values.auth.authority }}
+            - name: Authentication__Authority
+              value: {{ .Values.auth.authority | quote }}
+            - name: Authentication__Audience
+              value: {{ .Values.auth.apiAudience | default "fleans-api" | quote }}
+            {{- end }}
             {{- include "fleans.commonEnv" . | nindent 12 }}
           livenessProbe:
             httpGet:

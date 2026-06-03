@@ -177,8 +177,15 @@ static IResourceBuilder<ProjectResource> WithStreaming(
 var defaultCoreRole = builder.ExecutionContext.IsPublishMode ? "Core" : "Combined";
 var coreRole = builder.Configuration["FLEANS_ROLE"] ?? defaultCoreRole;
 
+// Authentication__Authority is propagated so that `aspire publish` emits a
+// docker-compose / kubernetes manifest with the same auth wiring as the Helm
+// chart. The downstream Fleans.Api/Program.cs fail-closed guard (this PR) refuses
+// to start in Production with an empty Authority, so leaving this off would
+// produce a publish artifact that crashes out of the box.
 var apiProject = builder.AddProject<Projects.Fleans_Api>("fleans-core")
     .WithEnvironment("Fleans__Role", coreRole)
+    .WithEnvironment("Authentication__Authority", authAuthority)
+    .WithEnvironment("Authentication__Audience", "fleans-api")
     .WithReference(orleans)
     .WaitFor(redis)
     .WithReplicas(1);
